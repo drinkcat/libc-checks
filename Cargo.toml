@@ -18,7 +18,7 @@ debug     = true
 opt-level = "z"
 
 [dependencies]
-esp-idf-svc = { version = "0.51.0", default-features = false, features = [
+esp-idf-svc = { version = "0.52.1", default-features = false, features = [
     "alloc",
     "binstart",
     "std",
