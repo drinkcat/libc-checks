@@ -29,3 +29,8 @@ log = { version = "0.4.26", default-features = false }
 
 [build-dependencies]
 embuild = "0.33.0"
+
+[patch.crates-io]
+esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys", branch = "master" }
+esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal", branch = "master" }
+esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc", branch = "master" }
