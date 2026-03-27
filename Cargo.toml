@@ -23,7 +23,7 @@ esp-idf-svc = { version = "0.52.1", default-features = false, features = [
     "binstart",
     "std",
 ] }
-libc = "0.2.170"
+libc = "0.2"
 log = { version = "0.4.26", default-features = false }
 
 
