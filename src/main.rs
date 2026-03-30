@@ -125,15 +125,18 @@ fn main() {
     check_constants!(MSG_CTRUNC);
     check_constants!(MSG_EOR);
     check_constants!(PTHREAD_STACK_MIN);
-    check_constants!(SIGABRT);
-    check_constants!(SIGFPE);
-    check_constants!(SIGILL);
-    check_constants!(SIGINT);
-    check_constants!(SIGSEGV);
-    check_constants!(SIGTERM);
-    check_constants!(SIGHUP);
-    check_constants!(SIGQUIT);
-    check_constants!(NSIG);
+    #[cfg(not(esp_idf_libc_picolibc))]
+    {
+        check_constants!(SIGABRT);
+        check_constants!(SIGFPE);
+        check_constants!(SIGILL);
+        check_constants!(SIGINT);
+        check_constants!(SIGSEGV);
+        check_constants!(SIGTERM);
+        check_constants!(SIGHUP);
+        check_constants!(SIGQUIT);
+        check_constants!(NSIG);
+    }
     check_constants!(SOMAXCONN);
 
     // newlib module (https://github.com/rust-lang/libc/blob/libc-0.2/src/unix/newlib/mod.rs)
@@ -162,8 +165,10 @@ fn main() {
     //check_types!(rlim_t); // No binding
     check_types!(sa_family_t);
     check_types!(socklen_t);
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(speed_t);
     check_types!(suseconds_t);
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(tcflag_t);
     check_types!(useconds_t);
     check_types!(time_t);
@@ -173,10 +178,13 @@ fn main() {
     check_types!(in_addr);
     //check_types!(lconv); // No binding
     check_types!(tm);
+    #[cfg(not(esp_idf_libc_picolibc))]
     check_types!(sigaction);
+    #[cfg(not(esp_idf_libc_picolibc))]
     check_types!(stack_t);
     check_types!(fd_set);
     //check_types!(passwd); // No binding
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(termios);
     //check_types!(sem_t); // No binding
     //check_types!(utsname); // No binding
@@ -188,6 +196,7 @@ fn main() {
     check_types!(pthread_mutexattr_t);
     check_types!(pthread_cond_t);
     check_types!(pthread_condattr_t);
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_constants!(NCCS);
     check_constants!(PTHREAD_MUTEX_NORMAL);
     check_constants!(PTHREAD_MUTEX_RECURSIVE);
@@ -468,6 +477,7 @@ fn main() {
     check_types!(in_addr_t);
     check_types!(in_port_t);
     //check_types!(sighandler_t); // No binding
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(cc_t);
     check_types!(uid_t);
     check_types!(gid_t);
@@ -485,8 +495,10 @@ fn main() {
     check_types!(pollfd);
     //check_types!(winsize); // No binding
     check_types!(linger);
+    #[cfg(not(esp_idf_libc_picolibc))]
     check_types!(sigval);
     check_types!(itimerval);
+    #[cfg(not(esp_idf_libc_picolibc))]
     check_types!(tms);
     //check_types!(servent); // No binding
     //check_types!(protoent); // No binding
@@ -499,16 +511,22 @@ fn main() {
     check_constants!(SIG_ERR);
     */
     check_constants!(DT_UNKNOWN);
-    //check_constants!(DT_FIFO); // No binding
-    //check_constants!(DT_CHR); // No binding
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_FIFO);
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_CHR);
     check_constants!(DT_DIR);
-    //check_constants!(DT_BLK); // No binding
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_BLK);
     check_constants!(DT_REG);
-    //check_constants!(DT_LNK); // No binding
-    //check_constants!(DT_SOCK); // No binding
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_LNK);
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_SOCK);
     check_constants!(FD_CLOEXEC);
     //check_constants!(USRQUOTA); // No binding
     //check_constants!(GRPQUOTA); // No binding
+    #[cfg(not(esp_idf_libc_picolibc))]
     check_constants!(SIGIOT);
     check_constants!(S_ISUID);
     check_constants!(S_ISGID);
