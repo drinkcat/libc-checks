@@ -1,8 +1,14 @@
+use core::sync::atomic::{AtomicU32, Ordering};
 use esp_idf_svc::sys;
+
+// Only atomics can be global variables -- avoids the need to pass
+// count as parameter to the macro.
+static MISMATCH_COUNT: AtomicU32 = AtomicU32::new(0);
 
 macro_rules! check_constants_manually {
     ($name:expr, $const1:expr, $const2:expr) => {
         if $const1.to_string() != $const2.to_string() {
+            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
             log::error!(
                 "Mismatch detected for constant `{}`: `esp-idf` {} | `libc` {}",
                 $name,
@@ -16,6 +22,7 @@ macro_rules! check_constants_manually {
 macro_rules! check_constants {
     ($ident:ident) => {
         if sys::$ident.to_string() != libc::$ident.to_string() {
+            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
             log::error!(
                 "Mismatch detected for constant `{}`: `esp-idf` {} | `libc` {}",
                 stringify!($ident),
@@ -29,6 +36,7 @@ macro_rules! check_constants {
 macro_rules! check_types_manually {
     ($name:expr, $size1:expr, $size2:expr, $align1:expr, $align2:expr) => {
         if $size1.to_string() != $size2.to_string() {
+            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
             log::error!(
                 "Mismatch detected for type `{}` size: `esp-idf` {} | `libc` {}",
                 $name,
@@ -37,6 +45,7 @@ macro_rules! check_types_manually {
             );
         }
         if $align1.to_string() != $align2.to_string() {
+            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
             log::error!(
                 "Mismatch detected for type `{}` alignment: `esp-idf` {} | `libc` {}",
                 $name,
@@ -50,6 +59,7 @@ macro_rules! check_types_manually {
 macro_rules! check_types {
     ($ident:ident) => {
         if std::mem::size_of::<sys::$ident>() != std::mem::size_of::<libc::$ident>() {
+            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
             log::error!(
                 "Mismatch detected for type `{}` size: `esp-idf` {} | `libc` {}",
                 stringify!($ident),
@@ -58,6 +68,7 @@ macro_rules! check_types {
             );
         }
         if std::mem::align_of::<sys::$ident>() != std::mem::align_of::<libc::$ident>() {
+            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
             log::error!(
                 "Mismatch detected for type `{}` alignment: `esp-idf` {} | `libc` {}",
                 stringify!($ident),
@@ -565,4 +576,11 @@ fn main() {
     check_constants!(STDIN_FILENO);
     check_constants!(STDOUT_FILENO);
     check_constants!(STDERR_FILENO);
+
+    let count = MISMATCH_COUNT.load(Ordering::Relaxed);
+    if count == 0 {
+        log::info!("All checks passed!");
+    } else {
+        log::error!("{} mismatch(es) detected!", count);
+    }
 }
