@@ -51,5 +51,5 @@ jobs:
         with:
           token: ${{ secrets.WOKWI_CLI_TOKEN }}
           timeout: 10000
-          fail_text: 'Mismatch detected for'
-          expect_text: 'Returned from app_main()'
+          fail_text: 'mismatch(es) detected!'
+          expect_text: 'All checks passed!'
