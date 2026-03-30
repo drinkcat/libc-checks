@@ -165,10 +165,10 @@ fn main() {
     //check_types!(rlim_t); // No binding
     check_types!(sa_family_t);
     check_types!(socklen_t);
-    #[cfg(not(esp_idf_libc_picolibc))]
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(speed_t);
     check_types!(suseconds_t);
-    #[cfg(not(esp_idf_libc_picolibc))]
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(tcflag_t);
     check_types!(useconds_t);
     check_types!(time_t);
@@ -184,7 +184,7 @@ fn main() {
     check_types!(stack_t);
     check_types!(fd_set);
     //check_types!(passwd); // No binding
-    #[cfg(not(esp_idf_libc_picolibc))]
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(termios);
     //check_types!(sem_t); // No binding
     //check_types!(utsname); // No binding
@@ -196,7 +196,7 @@ fn main() {
     check_types!(pthread_mutexattr_t);
     check_types!(pthread_cond_t);
     check_types!(pthread_condattr_t);
-    #[cfg(not(esp_idf_libc_picolibc))]
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_constants!(NCCS);
     check_constants!(PTHREAD_MUTEX_NORMAL);
     check_constants!(PTHREAD_MUTEX_RECURSIVE);
@@ -477,7 +477,7 @@ fn main() {
     check_types!(in_addr_t);
     check_types!(in_port_t);
     //check_types!(sighandler_t); // No binding
-    #[cfg(not(esp_idf_libc_picolibc))]
+    #[cfg(not(esp_idf_version_at_least_6_0_0))]
     check_types!(cc_t);
     check_types!(uid_t);
     check_types!(gid_t);
