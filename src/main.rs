@@ -511,13 +511,18 @@ fn main() {
     check_constants!(SIG_ERR);
     */
     check_constants!(DT_UNKNOWN);
-    //check_constants!(DT_FIFO); // No binding
-    //check_constants!(DT_CHR); // No binding
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_FIFO);
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_CHR);
     check_constants!(DT_DIR);
-    //check_constants!(DT_BLK); // No binding
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_BLK);
     check_constants!(DT_REG);
-    //check_constants!(DT_LNK); // No binding
-    //check_constants!(DT_SOCK); // No binding
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_LNK);
+    #[cfg(esp_idf_libc_picolibc)]
+    check_constants!(DT_SOCK);
     check_constants!(FD_CLOEXEC);
     //check_constants!(USRQUOTA); // No binding
     //check_constants!(GRPQUOTA); // No binding
