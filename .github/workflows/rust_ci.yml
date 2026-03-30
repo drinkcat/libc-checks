@@ -20,13 +20,57 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        action:
-          - command: build
-            args: --release
-          - command: fmt
-            args: --all -- --check --color always
-          - command: clippy
-            args: --all-targets --all-features --workspace -- -D warnings
+        idf-version:
+          - version: v5.5.3
+            picolibc: false
+          - version: v6.0
+            picolibc: true
+        libc:
+          - name: picolibc
+            sdkconfig_defaults: "sdkconfig.defaults"
+            rustflags: "--cfg espidf_time64"
+          - name: newlib
+            sdkconfig_defaults: "sdkconfig.defaults;sdkconfig.defaults.newlib"
+            rustflags: "--cfg espidf_time64"
+        exclude:
+          # picolibc available from v6.0 only
+          - idf-version:
+              picolibc: false
+            libc:
+              name: picolibc
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          components: rust-src
+      - name: Install ldproxy
+        run: |
+          curl -L "https://github.com/esp-rs/embuild/releases/latest/download/ldproxy-x86_64-unknown-linux-gnu.zip" -o "${HOME}/.cargo/bin/ldproxy.zip" && \
+          unzip "${HOME}/.cargo/bin/ldproxy.zip" -d "${HOME}/.cargo/bin/" && \
+          rm "${HOME}/.cargo/bin/ldproxy.zip" && \
+          chmod u+x "${HOME}/.cargo/bin/ldproxy"
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+      - name: Build
+        env:
+          RUSTFLAGS: ${{ matrix.libc.rustflags }}
+          ESP_IDF_SDKCONFIG_DEFAULTS: ${{ matrix.libc.sdkconfig_defaults }}
+          ESP_IDF_VERSION: ${{ matrix.idf-version.version }}
+        run: cargo build --release
+      - name: Wokwi CI check
+        uses: wokwi/wokwi-ci-action@v1
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          timeout: 10000
+          fail_text: 'mismatch(es) detected!'
+          expect_text: 'All checks passed!'
+
+  rust-lint:
+    name: Rust lint
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,13 +87,15 @@ jobs:
           chmod u+x "${HOME}/.cargo/bin/ldproxy"
       - name: Enable caching
         uses: Swatinem/rust-cache@v2
-      - name: Run command
-        run: cargo ${{ matrix.action.command }} ${{ matrix.action.args }}
-      - name: Wokwi CI check
-        if: matrix.action.command == 'build'
-        uses: wokwi/wokwi-ci-action@v1
-        with:
-          token: ${{ secrets.WOKWI_CLI_TOKEN }}
-          timeout: 10000
-          fail_text: 'mismatch(es) detected!'
-          expect_text: 'All checks passed!'
+      - name: fmt
+        env:
+          RUSTFLAGS: "--cfg espidf_time64"
+          ESP_IDF_SDKCONFIG_DEFAULTS: "sdkconfig.defaults;sdkconfig.defaults.newlib"
+          ESP_IDF_VERSION: "v5.5.3"
+        run: cargo fmt --all -- --check --color always
+      - name: clippy
+        env:
+          RUSTFLAGS: "--cfg espidf_time64"
+          ESP_IDF_SDKCONFIG_DEFAULTS: "sdkconfig.defaults;sdkconfig.defaults.newlib"
+          ESP_IDF_VERSION: "v5.5.3"
+        run: cargo clippy --all-targets --all-features --workspace -- -D warnings
