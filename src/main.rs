@@ -189,6 +189,7 @@ fn main() {
     //check_types!(sem_t); // No binding
     //check_types!(utsname); // No binding
     //check_types!(cpu_set_t); // No binding
+    // TODO: Bunch of alignment mismatches with these
     check_types!(pthread_attr_t);
     check_types!(pthread_rwlockattr_t);
     check_types!(pthread_mutex_t);
@@ -531,6 +532,8 @@ fn main() {
     check_constants!(S_ISUID);
     check_constants!(S_ISGID);
     check_constants!(S_ISVTX);
+    // We pickup a value from SDK's lwip instead of the libc header.
+    // TODO: Try to fix this.
     check_constants!(IF_NAMESIZE);
     check_constants!(IFNAMSIZ);
     /* No bindings
