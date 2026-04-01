@@ -7,13 +7,22 @@ static MISMATCH_COUNT: AtomicU32 = AtomicU32::new(0);
 
 macro_rules! check_constants_manually {
     ($name:expr, $const1:expr, $const2:expr) => {
+        check_constants_manually!($name, $const1, $const2, false)
+    };
+    ($name:expr, $const1:expr, $const2:expr, ignore) => {
+        check_constants_manually!($name, $const1, $const2, true)
+    };
+    ($name:expr, $const1:expr, $const2:expr, $ignore:expr) => {
         if $const1.to_string() != $const2.to_string() {
-            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            if !$ignore {
+                MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            }
             log::error!(
-                "Mismatch detected for constant `{}`: `esp-idf` {} | `libc` {}",
+                "Mismatch detected for constant `{}`: `esp-idf` {} | `libc` {}{}",
                 $name,
                 $const1,
-                $const2
+                $const2,
+                if $ignore { " (ignored)" } else { "" }
             );
         }
     };
@@ -21,13 +30,22 @@ macro_rules! check_constants_manually {
 
 macro_rules! check_constants {
     ($ident:ident) => {
+        check_constants!($ident, false)
+    };
+    ($ident:ident, ignore) => {
+        check_constants!($ident, true)
+    };
+    ($ident:ident, $ignore:expr) => {
         if sys::$ident.to_string() != libc::$ident.to_string() {
-            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            if !$ignore {
+                MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            }
             log::error!(
-                "Mismatch detected for constant `{}`: `esp-idf` {} | `libc` {}",
+                "Mismatch detected for constant `{}`: `esp-idf` {} | `libc` {}{}",
                 stringify!($ident),
                 sys::$ident,
-                libc::$ident
+                libc::$ident,
+                if $ignore { " (ignored)" } else { "" }
             );
         }
     };
@@ -35,22 +53,31 @@ macro_rules! check_constants {
 
 macro_rules! check_types_manually {
     ($name:expr, $size1:expr, $size2:expr, $align1:expr, $align2:expr) => {
+        check_types_manually!($name, $size1, $size2, $align1, $align2, false)
+    };
+    ($name:expr, $size1:expr, $size2:expr, $align1:expr, $align2:expr, $ignore:expr) => {
         if $size1.to_string() != $size2.to_string() {
-            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            if !$ignore {
+                MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            }
             log::error!(
-                "Mismatch detected for type `{}` size: `esp-idf` {} | `libc` {}",
+                "Mismatch detected for type `{}` size: `esp-idf` {} | `libc` {}{}",
                 $name,
                 $size1,
-                $size2
+                $size2,
+                if $ignore { " (ignored)" } else { "" }
             );
         }
         if $align1.to_string() != $align2.to_string() {
-            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            if !$ignore {
+                MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            }
             log::error!(
-                "Mismatch detected for type `{}` alignment: `esp-idf` {} | `libc` {}",
+                "Mismatch detected for type `{}` alignment: `esp-idf` {} | `libc` {}{}",
                 $name,
                 $align1,
-                $align2
+                $align2,
+                if $ignore { " (ignored)" } else { "" }
             );
         }
     };
@@ -58,22 +85,31 @@ macro_rules! check_types_manually {
 
 macro_rules! check_types {
     ($ident:ident) => {
+        check_types!($ident, false)
+    };
+    ($ident:ident, $ignore:expr) => {
         if std::mem::size_of::<sys::$ident>() != std::mem::size_of::<libc::$ident>() {
-            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            if !$ignore {
+                MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            }
             log::error!(
-                "Mismatch detected for type `{}` size: `esp-idf` {} | `libc` {}",
+                "Mismatch detected for type `{}` size: `esp-idf` {} | `libc` {}{}",
                 stringify!($ident),
                 std::mem::size_of::<sys::$ident>(),
-                std::mem::size_of::<libc::$ident>()
+                std::mem::size_of::<libc::$ident>(),
+                if $ignore { " (ignored)" } else { "" }
             );
         }
         if std::mem::align_of::<sys::$ident>() != std::mem::align_of::<libc::$ident>() {
-            MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            if !$ignore {
+                MISMATCH_COUNT.fetch_add(1, Ordering::Relaxed);
+            }
             log::error!(
-                "Mismatch detected for type `{}` alignment: `esp-idf` {} | `libc` {}",
+                "Mismatch detected for type `{}` alignment: `esp-idf` {} | `libc` {}{}",
                 stringify!($ident),
                 std::mem::align_of::<sys::$ident>(),
-                std::mem::align_of::<libc::$ident>()
+                std::mem::align_of::<libc::$ident>(),
+                if $ignore { " (ignored)" } else { "" }
             );
         }
     };
@@ -533,9 +569,9 @@ fn main() {
     check_constants!(S_ISGID);
     check_constants!(S_ISVTX);
     // We pickup a value from SDK's lwip instead of the libc header.
-    // TODO: Try to fix this.
-    check_constants!(IF_NAMESIZE);
-    check_constants!(IFNAMSIZ);
+    // => Likely harmless.
+    check_constants!(IF_NAMESIZE, ignore);
+    check_constants!(IFNAMSIZ, ignore);
     /* No bindings
     check_constants!(LOG_EMERG);
     check_constants!(LOG_ALERT);
